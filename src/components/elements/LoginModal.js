@@ -1,8 +1,16 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import ButtonGroup from '../elements/ButtonGroup';
-import Button from '../elements/Button';
+import ButtonGroup from './ButtonGroup';
+import Button from './Button';
+import Input from './Input'
+import SignInForm from './SignInForm';
+import SignUpForm from './SingUpForm';
+import { Auth } from 'aws-amplify'
+import Amplify from 'aws-amplify';
+import aws_exports from '../../aws-exports'
+
+Amplify.configure(aws_exports);
 
 const propTypes = {
   children: PropTypes.node,
@@ -21,7 +29,7 @@ const defaultProps = {
   videoTag: 'iframe'
 }
 
-const Modal = ({
+const LoginModal = ({
   className,
   children,
   handleClose,
@@ -31,6 +39,11 @@ const Modal = ({
   videoTag,
   ...props
 }) => {
+
+  // console.log("props from beginning...")
+  // console.log(props.handleClose)
+
+  const [formDisplayType, setFormDisplayType] = useState('login')
 
   useEffect(() => {
     document.addEventListener('keydown', keyPress);
@@ -68,6 +81,27 @@ const Modal = ({
     className
   );
 
+  const determineFormDisplayType = (type) => {
+    console.log("updating form display type: "+type)
+    setFormDisplayType(type)
+  }
+
+  const showForm = (e) => {
+    console.log("after props")
+    handleClose(e)
+    e.preventDefault()
+  }
+
+  const closeForm = (e) => {
+    props.customClose(e)
+  }
+
+  const userAccount = (usr) => {
+    console.log("set user in LoginModal...")
+    console.log(props)
+    props.user(usr)
+  }
+
   return (
     <>
       {show &&
@@ -77,24 +111,18 @@ const Modal = ({
           onClick={handleClose}
         >
           <div className="modal-inner" onClick={stopProgagation}>
-            {video ?
-              <div className="responsive-video">
-                {videoTag === 'iframe' ?
-                  <iframe
-                    title="video"
-                    src={video}
-                    frameBorder="0"
-                    allowFullScreen
-                  >
-                  </iframe> :
-                  <video
-                    v-else
-                    controls
-                    src={video}
-                  ></video>
-                }
-                
-              </div> :
+          <div className="modal-content">
+            {formDisplayType === 'login' ? <SignInForm user={userAccount} closeForm={closeForm} formVisible={showForm} formType={determineFormDisplayType}/> : <SignUpForm user={userAccount} closeForm={closeForm} formVisible={showForm} formType={determineFormDisplayType}/>}
+                  {/* <div>
+                    <h2 className="mt-0 mb-16">Account Login</h2>
+                    <form>
+                      <Input id="name" type="text" label="" placeholder="email address"/>
+                      <Input id="name" type="password" label="" placeholder="password"/>
+                      <div style={{padding:25}}><Button color="primary">Submit</Button></div>
+                    </form>
+                  </div> */}
+          </div>
+            
               <>
                 {!closeHidden &&
                   <button
@@ -104,18 +132,10 @@ const Modal = ({
                   ></button>
                 }
                 
-                <div className="modal-content">
-                  {children}
-                </div>
+                
               </>
-            }
-            <div>
-                  <ButtonGroup>
-                    <Button tag="a" color="primary" wideMobile href="https://cruip.com/">Bell</Button>
-                    <Button tag="a" color="primary" wideMobile href="https://cruip.com/">Water</Button>
-                    <Button tag="a" color="primary" wideMobile href="https://cruip.com/">Food</Button>
-                  </ButtonGroup>
-            </div>
+            
+            
           </div>
           
         </div>
@@ -125,7 +145,7 @@ const Modal = ({
   )
 }
 
-Modal.propTypes = propTypes;
-Modal.defaultProps = defaultProps;
+LoginModal.propTypes = propTypes;
+LoginModal.defaultProps = defaultProps;
 
-export default Modal;
+export default LoginModal;
